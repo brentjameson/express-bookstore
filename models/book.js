@@ -1,4 +1,7 @@
 const db = require("../db");
+const ExpressError = require("../expressError")
+const jsonschema = require("jsonschema");
+const bookSchema = require("../schemas/bookSchema.json");
 
 
 /** Collection of related methods for books. */
@@ -155,7 +158,19 @@ class Book {
       throw { message: `There is no book with an isbn '${isbn}`, status: 404 }
     }
   }
+
+  // validates json book data entered by user. if it's valid, returns true. if it's invalid, returns
+
+  static async validateBookData(data) {
+    const result = jsonschema.validate(data, bookSchema)
+    return result
+  } 
+
+  static async handleInvalidBookErrors(result) {
+    let listOfErrors = result.errors.map(error => error.stack);
+    return new ExpressError(listOfErrors, 400);
+    }
 }
 
-
 module.exports = Book;
+    
